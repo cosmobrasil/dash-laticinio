@@ -7,40 +7,85 @@
     <link rel="stylesheet" href="./assets/app.css" />
   </head>
   <body>
-    <main class="shell">
-      <section class="page-header">
-        <p class="eyebrow">Leitura coletiva</p>
-        <h1>Dashboard territorial de laticinios</h1>
-        <p class="lead">
-          KPIs executivos, leitura cognitiva e distribuicao de maturidade com base nas avaliacoes
-          persistidas.
+    <main class="dashboard-shell">
+      <section class="hero-panel">
+        <p class="eyebrow">Leitura territorial</p>
+        <h1>Dashboard de circularidade para laticinios</h1>
+        <p class="hero-copy">
+          Painel executivo para consolidar diagnosticos enviados pelo formulario, acompanhar
+          maturidade media e localizar pontos de atencao por empresa, cidade e produto.
         </p>
       </section>
 
-      <section class="card">
-        <form id="filter-form" class="form-grid compact-grid">
+      <section class="panel filter-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Filtros e acesso ao relatorio</h2>
+            <p class="muted">
+              Os filtros valem para os indicadores, graficos e para a lista de avaliacoes recentes.
+            </p>
+          </div>
+        </div>
+
+        <form id="filter-form" class="filter-grid">
+          <label>
+            Setor
+            <select name="segment">
+              <option value="laticinios">Laticinios</option>
+            </select>
+          </label>
+
+          <label>
+            Produto
+            <select name="product">
+              <option value="">Todos</option>
+            </select>
+          </label>
+
           <label>
             Cidade
-            <input name="city" placeholder="Ex.: Divinopolis" />
+            <select name="city">
+              <option value="">Todas</option>
+            </select>
           </label>
+
           <label>
             UF
-            <input name="state" maxlength="2" placeholder="MG" />
+            <select name="state">
+              <option value="">Todas</option>
+            </select>
           </label>
+
           <label>
-            Segmento
-            <input name="segment" placeholder="Queijos" />
+            Data inicio
+            <input name="startDate" type="date" />
           </label>
+
+          <label>
+            Data fim
+            <input name="endDate" type="date" />
+          </label>
+
           <div class="filter-actions">
-            <button class="button" type="submit">Atualizar</button>
+            <button class="button" type="submit">Atualizar painel</button>
+            <label class="checkbox-row">
+              <input id="auto-refresh" type="checkbox" />
+              <span>Atualizacao automatica (60s)</span>
+            </label>
           </div>
+
+          <label class="token-field">
+            Token admin
+            <input name="adminToken" placeholder="Opcional, se o backend exigir" />
+          </label>
         </form>
       </section>
 
-      <section id="dashboard-status" class="card"></section>
-      <section id="kpis-root" class="grid"></section>
-      <section id="insights-root" class="grid"></section>
-      <section id="tables-root" class="grid grid-wide"></section>
+      <section id="dashboard-status" class="panel status-panel"></section>
+      <section id="kpis-root" class="kpi-grid"></section>
+      <section id="charts-root" class="chart-grid"></section>
+      <section id="tables-root" class="table-grid"></section>
+      <section id="strategy-root" class="panel strategy-panel"></section>
     </main>
 
     <script src="./assets/config.js"></script>

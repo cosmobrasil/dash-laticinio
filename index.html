@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard de Circularidade</title>
+    <link rel="stylesheet" href="./assets/app.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="page-header">
+        <p class="eyebrow">Leitura coletiva</p>
+        <h1>Dashboard territorial de laticinios</h1>
+        <p class="lead">
+          KPIs executivos, leitura cognitiva e distribuicao de maturidade com base nas avaliacoes
+          persistidas.
+        </p>
+      </section>
+
+      <section class="card">
+        <form id="filter-form" class="form-grid compact-grid">
+          <label>
+            Cidade
+            <input name="city" placeholder="Ex.: Divinopolis" />
+          </label>
+          <label>
+            UF
+            <input name="state" maxlength="2" placeholder="MG" />
+          </label>
+          <label>
+            Segmento
+            <input name="segment" placeholder="Queijos" />
+          </label>
+          <div class="filter-actions">
+            <button class="button" type="submit">Atualizar</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="dashboard-status" class="card"></section>
+      <section id="kpis-root" class="grid"></section>
+      <section id="insights-root" class="grid"></section>
+      <section id="tables-root" class="grid grid-wide"></section>
+    </main>
+
+    <script src="./assets/config.js"></script>
+    <script src="./assets/dashboard.js"></script>
+  </body>
+</html>

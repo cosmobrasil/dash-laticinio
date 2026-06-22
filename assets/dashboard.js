@@ -281,6 +281,109 @@ function updateFilterOptions(overview) {
   }
 }
 
+function entriesToMetricItems(source = {}, labels = {}) {
+  return Object.entries(source)
+    .map(([key, value]) => ({
+      key,
+      label: labels[key] || key,
+      value: Number(value || 0)
+    }))
+    .filter((item) => Number.isFinite(item.value));
+}
+
+function pickExtremeItem(items, direction) {
+  if (!items.length) {
+    return null;
+  }
+
+  return items.slice().sort((left, right) => direction === "max" ? right.value - left.value : left.value - right.value)[0];
+}
+
+function normalizeLegacyOverview(data) {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  if (typeof data.sampleSize === "number") {
+    return data;
+  }
+
+  if (typeof data.totalFormularios !== "number") {
+    return null;
+  }
+
+  const topicLabels = {
+    entrada: "Entrada",
+    residuos: "Resíduos",
+    output: "Saída",
+    vida: "Vida útil",
+    monitoramento: "Monitoramento"
+  };
+
+  const stageLabels = {
+    entrada: "Entrada",
+    residuos: "Resíduos",
+    desmonte: "Desmonte",
+    reciclabilidade: "Reciclabilidade",
+    aterro: "Aterro",
+    recuperacaoEnergia: "Recuperação de energia",
+    reaproveitamento: "Reaproveitamento"
+  };
+
+  const topicPercentages = entriesToMetricItems(data.topicos, topicLabels);
+  const pcmDimensoes = entriesToMetricItems(data.pcmDimensoes, stageLabels);
+  const imeDimensoes = entriesToMetricItems(data.imeDimensoes, stageLabels);
+  const strongestTopic = pickExtremeItem(topicPercentages, "max");
+  const weakestTopic = pickExtremeItem(topicPercentages, "min");
+  const weakestStage = pickExtremeItem(pcmDimensoes.length ? pcmDimensoes : topicPercentages, "min");
+  const strongestStage = pickExtremeItem(pcmDimensoes.length ? pcmDimensoes : topicPercentages, "max");
+  const igcAverage = Number(data.mediaIGC || 0);
+  const pcmAverage = Number(data.mediaPCM || 0);
+
+  return {
+    sampleSize: Number(data.totalFormularios || 0),
+    filters: {},
+    availableFilters: null,
+    kpis: {
+      validAssessments: Number(data.totalFormularios || 0),
+      totalPointsAverage: Number(data.mediaTotalPontos || 0),
+      igcAverage,
+      pcmAverage,
+      igcGap: Number(data.igcGap ?? Math.max(0, 100 - igcAverage))
+    },
+    chartData: {
+      topicPercentages,
+      materialProfile: pcmDimensoes.length ? pcmDimensoes : topicPercentages,
+      productProfile: imeDimensoes.length ? imeDimensoes : topicPercentages
+    },
+    cognitiveReadout: {
+      strongestStage: strongestStage?.label || strongestTopic?.label || "Sem leitura",
+      weakestStage: weakestStage?.label || weakestTopic?.label || "Sem leitura",
+      concentration: "dados consolidados da API",
+      sampleQuality:
+        Number(data.totalFormularios || 0) >= 10
+          ? "amostra consolidada"
+          : "amostra reduzida",
+      executivePriorities: [
+        weakestStage || weakestTopic
+          ? `Priorizar o bloco ${(weakestStage || weakestTopic).label}.`
+          : null,
+        strongestStage || strongestTopic
+          ? `Preservar a força do bloco ${(strongestStage || strongestTopic).label}.`
+          : null
+      ].filter(Boolean),
+      leadershipQuestions: [
+        "Qual indicador precisa de ação primeiro?",
+        "Qual bloco concentra o maior gap?",
+        "Que recorte adicional vale abrir na próxima análise?"
+      ]
+    },
+    recentAssessments: [],
+    standoutCompanies: [],
+    attentionCompanies: []
+  };
+}
+
 function renderOverview(data) {
   lastOverview = data;
   updateFilterOptions(data);
@@ -436,20 +539,26 @@ async function loadOverview(filters = getFilters()) {
   `);
 
   try {
-    const response = await fetch(`${apiBaseUrl}/api/dashboard/overview${query ? `?${query}` : ""}`);
-    const data = await response.json();
+    const response = await fetchComTimeout(`${apiBaseUrl}/api/dashboard/overview${query ? `?${query}` : ""}`);
+    const payload = await response.json();
+    const source = payload?.data && typeof payload.data === "object" ? payload.data : payload;
+    const overview = normalizeLegacyOverview(source);
 
     if (!response.ok) {
-      throw new Error(data.error || "Falha ao carregar o dashboard.");
+      throw new Error(payload.error || source.error || "Falha ao carregar o dashboard.");
     }
 
-    if (!data.sampleSize) {
-      updateFilterOptions(data);
+    if (!overview) {
+      throw new Error("Formato de resposta da API nao reconhecido.");
+    }
+
+    if (!overview.sampleSize) {
+      updateFilterOptions(overview);
       renderEmptyState("Ajuste periodo, cidade, UF ou produto para ampliar o recorte.");
       return;
     }
 
-    renderOverview(data);
+    renderOverview(overview);
   } catch (error) {
     setStatus(
       `

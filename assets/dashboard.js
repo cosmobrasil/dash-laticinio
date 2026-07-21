@@ -9,6 +9,7 @@ const autoRefreshInput = document.querySelector("#auto-refresh");
 
 let lastOverview = null;
 let autoRefreshTimer = null;
+const PCM_MAX_AVERAGE = 23 / 12;
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -28,6 +29,10 @@ function formatNumber(value, digits = 0) {
 
 function formatPercent(value) {
   return `${formatNumber(value, 1)}%`;
+}
+
+function formatPcmPercent(value) {
+  return formatPercent((Number(value || 0) / PCM_MAX_AVERAGE) * 100);
 }
 
 function formatDate(value) {
@@ -415,14 +420,14 @@ function renderOverview(data) {
     renderMetricCard("Total de formularios", formatNumber(data.kpis.validAssessments), "Submissoes persistidas e validas.", "green"),
     renderMetricCard("Media total de pontos", formatNumber(data.kpis.totalPointsAverage, 2), "Media convertida a partir do PCM.", "blue"),
     renderMetricCard("Media IGC", formatPercent(data.kpis.igcAverage), "Indicador geral de circularidade do recorte.", "green"),
-    renderMetricCard("Media PCM", formatPercent((Number(data.kpis.pcmAverage || 0) / 2) * 100), "Pontuacao media por criterio respondido.", "violet")
+    renderMetricCard("Media PCM", formatPcmPercent(data.kpis.pcmAverage), "Pontuacao media normalizada pelas 12 questoes.", "violet")
   ].join("");
 
   chartsRoot.innerHTML = [
     renderChartCard(
       "Percentual de pontos por topico",
       buildBarChart(data.chartData.topicPercentages.map((item) => ({ label: item.label, value: item.value }))),
-      "Os cinco topicos principais mostram onde a maturidade media esta mais forte ou mais fragil."
+      "Os cinco blocos do PDF mostram onde a maturidade media esta mais forte ou mais fragil."
     ),
     renderChartCard(
       "Indice Global de Circularidade (IGC)",
@@ -432,12 +437,12 @@ function renderOverview(data) {
     renderChartCard(
       "Perfil de Circularidade de Materiais",
       buildRadarChart(data.chartData.materialProfile, "green"),
-      "Este radar representa sinais agregados de rastreabilidade, reaproveitamento, renovabilidade e fim de vida circular."
+      "Este radar representa sinais agregados de origem, residuos, reciclabilidade, retorno e fim de vida."
     ),
     renderChartCard(
       "Indice de Circularidade do Produto",
       buildRadarChart(data.chartData.productProfile, "blue"),
-      "Visao dos cinco topicos principais: Entrada, Gestao de Residuos, Saida do Produto, Vida do Produto e Monitoramento."
+      "Visao media dos cinco blocos: Entrada, Gestao de Residuos, Saida do Produto, Vida Util e Monitoramento."
     )
   ].join("");
 

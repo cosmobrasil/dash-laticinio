@@ -589,7 +589,6 @@ function getFilters() {
   const formData = new FormData(form);
   return {
     product: String(formData.get("product") || "").trim(),
-    token: String(formData.get("adminToken") || "").trim(),
     city: String(formData.get("city") || "").trim(),
     state: String(formData.get("state") || "").trim().toUpperCase(),
     startDate: String(formData.get("startDate") || "").trim(),

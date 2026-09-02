@@ -533,14 +533,20 @@ function renderEmptyState(message) {
 }
 
 async function loadOverview(filters = getFilters()) {
+  const token = String(form.elements.adminToken?.value || "").trim();
+  const requestParams = { ...filters };
+  if (token) {
+    requestParams.token = token;
+  }
+
   const query = new URLSearchParams(
-    Object.entries(filters).filter(([, value]) => value)
+    Object.entries(requestParams).filter(([, value]) => value)
   ).toString();
 
   setStatus(`
     <p class="eyebrow">Carregando</p>
     <h2>Consultando o backend</h2>
-    <p class="muted">A leitura executiva depende dos dados persistidos na API.</p>
+    <p class="muted">A leitura executiva depende dos dados persistidos na API e de um token admin valido.</p>
   `);
 
   try {

@@ -533,11 +533,6 @@ function renderEmptyState(message) {
 }
 
 async function loadOverview(filters = getFilters()) {
-  if (!filters.token) {
-    renderEmptyState("Informe o token administrativo para consultar os dados.");
-    return;
-  }
-
   const query = new URLSearchParams(
     Object.entries(filters).filter(([, value]) => value)
   ).toString();

@@ -9,7 +9,7 @@ const autoRefreshInput = document.querySelector("#auto-refresh");
 
 let lastOverview = null;
 let autoRefreshTimer = null;
-const PCM_MAX_AVERAGE = 23 / 12;
+const PCM_MAX_AVERAGE = 2;
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -320,7 +320,7 @@ function normalizeLegacyOverview(data) {
   const topicLabels = {
     entrada: "Entrada",
     residuos: "Resíduos",
-    output: "Saída",
+    saida_produto: "Saída do produto",
     vida: "Vida útil",
     monitoramento: "Monitoramento"
   };
@@ -420,19 +420,19 @@ function renderOverview(data) {
     renderMetricCard("Total de formularios", formatNumber(data.kpis.validAssessments), "Submissoes persistidas e validas.", "green"),
     renderMetricCard("Media total de pontos", formatNumber(data.kpis.totalPointsAverage, 2), "Media convertida a partir do PCM.", "blue"),
     renderMetricCard("Media IGC", formatPercent(data.kpis.igcAverage), "Indicador geral de circularidade do recorte.", "green"),
-    renderMetricCard("Media PCM", formatPcmPercent(data.kpis.pcmAverage), "Pontuacao media normalizada pelas 12 questoes.", "violet")
+    renderMetricCard("Media PCM", formatPcmPercent(data.kpis.pcmAverage), "Pontuação média normalizada pelas 11 perguntas.", "violet")
   ].join("");
 
   chartsRoot.innerHTML = [
     renderChartCard(
       "Percentual de pontos por topico",
       buildBarChart(data.chartData.topicPercentages.map((item) => ({ label: item.label, value: item.value }))),
-      "Os cinco blocos do PDF mostram onde a maturidade media esta mais forte ou mais fragil."
+      "As cinco etapas do formulário mostram onde a maturidade média está mais forte ou mais frágil."
     ),
     renderChartCard(
       "Indice Global de Circularidade (IGC)",
       buildDonutChart(data.kpis.igcAverage, data.kpis.igcGap),
-      "O IGC sintetiza o quao circular e o modelo avaliado, consolidando entrada, residuos, saida, vida util e monitoramento."
+      "O IGC sintetiza o quanto o modelo avaliado incorpora circularidade nas cinco etapas do formulário."
     ),
     renderChartCard(
       "Perfil de Circularidade de Materiais",
@@ -442,7 +442,7 @@ function renderOverview(data) {
     renderChartCard(
       "Indice de Circularidade do Produto",
       buildRadarChart(data.chartData.productProfile, "blue"),
-      "Visao media dos cinco blocos: Entrada, Gestao de Residuos, Saida do Produto, Vida Util e Monitoramento."
+      "Visão média das cinco etapas: Entrada, Gestão de Resíduos, Saída do Produto, Vida Útil e Monitoramento."
     )
   ].join("");
 

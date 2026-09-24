@@ -296,6 +296,30 @@ function entriesToMetricItems(source = {}, labels = {}) {
     .filter((item) => Number.isFinite(item.value));
 }
 
+function isLegacyEnergyMetric(item) {
+  const identifier = `${item?.key || ""} ${item?.label || ""}`
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  return identifier.includes("recuperacaoenergia") || identifier.includes("recuperacao energetica");
+}
+
+function withoutLegacyEnergyMetric(items = []) {
+  return items.filter((item) => !isLegacyEnergyMetric(item));
+}
+
+function questionnaireVersionNote(overview) {
+  const versions = overview.questionnaireVersions || [];
+  if (versions.length < 2) {
+    return "";
+  }
+
+  const summary = versions
+    .map((item) => `${item.version}: ${item.count}`)
+    .join(" · ");
+  return `Comparabilidade: o recorte reúne versões do questionário (${summary}). A alternativa de recuperação energética foi removida na versão atual; interprete tendências por período.`;
+}
+
 function pickExtremeItem(items, direction) {
   if (!items.length) {
     return null;
@@ -358,7 +382,7 @@ function normalizeLegacyOverview(data) {
     },
     chartData: {
       topicPercentages,
-      materialProfile: pcmDimensoes.length ? pcmDimensoes : topicPercentages,
+      materialProfile: withoutLegacyEnergyMetric(pcmDimensoes.length ? pcmDimensoes : topicPercentages),
       productProfile: imeDimensoes.length ? imeDimensoes : topicPercentages
     },
     cognitiveReadout: {
@@ -398,6 +422,9 @@ function renderOverview(data) {
       ? data.cognitiveReadout.executivePriorities
       : ["Nenhuma prioridade critica detectada no recorte atual."];
 
+  const methodologyNote = questionnaireVersionNote(data);
+  const materialProfile = withoutLegacyEnergyMetric(data.chartData.materialProfile || []);
+
   setStatus(`
     <div class="status-row">
       <div>
@@ -407,6 +434,7 @@ function renderOverview(data) {
           Qualidade da amostra: ${escapeHtml(data.cognitiveReadout.sampleQuality)}. Concentracao:
           ${escapeHtml(data.cognitiveReadout.concentration)}.
         </p>
+        ${methodologyNote ? `<p class="muted">${escapeHtml(methodologyNote)}</p>` : ""}
       </div>
       <div class="status-aside">
         <span class="status-pill">Atualizado ${escapeHtml(formatDate(new Date().toISOString()))}</span>
@@ -436,8 +464,8 @@ function renderOverview(data) {
     ),
     renderChartCard(
       "Perfil de Circularidade de Materiais",
-      buildRadarChart(data.chartData.materialProfile, "green"),
-      "Este radar representa sinais agregados de origem, residuos, reciclabilidade, retorno e fim de vida."
+      buildRadarChart(materialProfile, "green"),
+      "Este radar representa sinais agregados de origem, reaproveitamento, reciclabilidade, retorno e fim de vida."
     ),
     renderChartCard(
       "Indice de Circularidade do Produto",

@@ -181,6 +181,11 @@ select:focus {
   filter: brightness(1.06);
 }
 
+.button-secondary {
+  background: #e8edf3;
+  color: #263445;
+}
+
 .checkbox-row {
   display: inline-flex;
   align-items: center;

@@ -9,6 +9,7 @@ const autoRefreshInput = document.querySelector("#auto-refresh");
 
 let lastOverview = null;
 let autoRefreshTimer = null;
+let overviewRequestId = 0;
 const PCM_MAX_AVERAGE = 2;
 
 function escapeHtml(value) {
@@ -277,12 +278,13 @@ function updateFilterOptions(overview) {
   for (const config of filterConfig) {
     const select = form.elements[config.name];
     const currentValue = String(select.value || "");
+    const values = Array.isArray(config.values) ? config.values : [];
     const options = [`<option value="">${config.allLabel}</option>`]
-      .concat(config.values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`))
+      .concat(values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`))
       .join("");
 
     select.innerHTML = options;
-    select.value = config.values.includes(currentValue) ? currentValue : overview.filters?.[config.name] || "";
+    select.value = values.includes(currentValue) ? currentValue : "";
   }
 }
 
@@ -561,6 +563,16 @@ function renderEmptyState(message) {
 }
 
 async function loadOverview(filters = getFilters()) {
+  const requestId = ++overviewRequestId;
+  if (filters.startDate && filters.endDate && filters.startDate > filters.endDate) {
+    setStatus(`
+      <p class="eyebrow">Confira o período</p>
+      <h2>A data de início deve ser anterior ou igual à data de fim.</h2>
+      <p class="muted">Corrija as datas para atualizar o painel. Os resultados anteriores continuam exibidos.</p>
+    `, "error");
+    return;
+  }
+
   const query = new URLSearchParams(
     Object.entries(filters).filter(([, value]) => value)
   ).toString();
@@ -574,6 +586,9 @@ async function loadOverview(filters = getFilters()) {
   try {
     const response = await fetchComTimeout(`${apiBaseUrl}/api/dashboard/overview${query ? `?${query}` : ""}`);
     const payload = await response.json();
+    if (requestId !== overviewRequestId) {
+      return;
+    }
     const source = payload?.data && typeof payload.data === "object" ? payload.data : payload;
     const overview = normalizeLegacyOverview(source);
 
@@ -593,6 +608,9 @@ async function loadOverview(filters = getFilters()) {
 
     renderOverview(overview);
   } catch (error) {
+    if (requestId !== overviewRequestId) {
+      return;
+    }
     setStatus(
       `
         <p class="eyebrow">Dashboard indisponivel</p>
@@ -633,6 +651,20 @@ function resetAutoRefresh() {
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   loadOverview();
+});
+
+form.addEventListener("change", (event) => {
+  if (["product", "city", "state", "startDate", "endDate"].includes(event.target.name)) {
+    loadOverview();
+  }
+});
+
+form.addEventListener("reset", () => {
+  // Wait until the browser has reset the controls before reading their values.
+  window.setTimeout(() => {
+    resetAutoRefresh();
+    loadOverview();
+  }, 0);
 });
 
 autoRefreshInput.addEventListener("change", resetAutoRefresh);

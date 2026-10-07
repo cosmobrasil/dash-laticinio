@@ -22,7 +22,7 @@
           <div>
             <h2>Filtros e acesso ao relatorio</h2>
             <p class="muted">
-              Os filtros valem para os indicadores, graficos e para a lista de avaliacoes recentes.
+              Ao alterar um filtro, os indicadores, gráficos e avaliações recentes são atualizados automaticamente.
             </p>
           </div>
         </div>
@@ -30,7 +30,7 @@
         <form id="filter-form" class="filter-grid">
           <label>
             Setor
-            <select name="segment">
+            <select name="segment" disabled title="Este painel reúne somente o setor de alimentos.">
               <option value="alimentos">Alimentos</option>
             </select>
           </label>
@@ -68,6 +68,7 @@
 
           <div class="filter-actions">
             <button class="button" type="submit">Atualizar painel</button>
+            <button class="button button-secondary" type="reset">Limpar filtros</button>
             <label class="checkbox-row">
               <input id="auto-refresh" type="checkbox" />
               <span>Atualizacao automatica (60s)</span>

@@ -602,7 +602,9 @@ async function loadOverview(filters = getFilters()) {
 
     if (!overview.sampleSize) {
       updateFilterOptions(overview);
-      renderEmptyState("Ajuste periodo, cidade, UF ou produto para ampliar o recorte.");
+      renderEmptyState(
+        "Nenhuma avaliacao atende ao recorte atual. Limpe o periodo ou ajuste cidade, UF e produto para ampliar a busca."
+      );
       return;
     }
 
@@ -669,7 +671,9 @@ form.addEventListener("reset", () => {
 
 autoRefreshInput.addEventListener("change", resetAutoRefresh);
 
-form.elements.startDate.value = daysAgoString(30);
-form.elements.endDate.value = todayString();
+// O painel abre sem recorte de periodo. O intervalo inicial de 30 dias escondia
+// avaliacoes mais antigas e fazia o dashboard parecer vazio mesmo com dados no banco.
+form.elements.startDate.value = "";
+form.elements.endDate.value = "";
 
 loadOverview();

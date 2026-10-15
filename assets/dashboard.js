@@ -448,6 +448,7 @@ function renderOverview(data) {
 
   kpisRoot.innerHTML = [
     renderMetricCard("Total de formularios", formatNumber(data.kpis.validAssessments), "Submissoes persistidas e validas.", "green"),
+    renderMetricCard("Total de empresas", formatNumber(data.kpis.uniqueCompanies), "Empresas distintas no recorte atual.", "blue"),
     renderMetricCard("Media total de pontos", formatNumber(data.kpis.totalPointsAverage, 2), "Media convertida a partir do PCM.", "blue"),
     renderMetricCard("Media IGC", formatPercent(data.kpis.igcAverage), "Indicador geral de circularidade do recorte.", "green"),
     renderMetricCard("Media PCM", formatPcmPercent(data.kpis.pcmAverage), "Pontuação média normalizada pelas 11 perguntas.", "violet")
